@@ -4,7 +4,7 @@
 %                          Llorente, J. F. 
 %               Desempeño con CSI parcial y tasa fija...
 %==========================================================================
-clc; clear variables; close all;
+clc;    clear variables; close all;
 LW = 2;
 theta = 0;
 ts = 5e-6;
@@ -65,7 +65,8 @@ for EbN0db=0:paso:limite
 %     ak_1_nq = WGNq_1;
 %     ak_1_n=(cos(theta)*ak_1_ni-sin(theta)*ak_1_nq + 1i*(ak_1_ni*sin(theta)+ak_1_nq*cos(theta)));
     y_n = ak_1.*channel_50segs + c_noise;
-    Simbolos_r_1=ReceptorOptimo(real(y_n)./(channel_50segs),imag(y_n)./(channel_50segs),A_1,M_1,Asignacion_coords_1);
+%     Simbolos_r_1=ReceptorOptimo(real(y_n)./(channel_50segs),imag(y_n)./(channel_50segs),A_1,M_1,Asignacion_coords_1);
+    Simbolos_r_1=ReceptorOptimo(real(y_n).*conj(channel_50segs),imag(y_n).*conj(channel_50segs),A_1,M_1,Asignacion_coords_1);
 %     Dividiendo por Channel se cancelan los modulos y las fases se restan
 %     por lo que deja de estar presente la secuencia de ganancias de canal.
     bits_r_1=ConvaBits(Simbolos_r_1,Asignacion_coords_1,M_1);
@@ -77,8 +78,8 @@ end
 EbN0_veces = 10.^(EbN0_dB/10);
 % EbN0_veces = EsN0_veces/N_1;
 Peb_BPSK=qfunc(sqrt(2*EbN0_veces));%Igual a Pes
-
-figure;semilogy(EbN0_dB,Peb1,EbN0_dB,Peb_BPSK,'LineWidth',LW/4),legend('Relevada','Teórica'),set(gca,'FontSize',11);
+Peb_BPSK_fading = 0.5*(1-sqrt(EbN0_veces./(1+EbN0_veces)));
+figure;semilogy(EbN0_dB,Peb1,EbN0_dB,Peb_BPSK,EbN0_dB,Peb_BPSK_fading,'--k','LineWidth',LW/4),legend('Relevada','Teórica AWGN','Teórica FADING'),set(gca,'FontSize',11);
 title(sprintf("Curva de probabilidad de error de bit BPSK (%g bits)",NumB));
 grid on, ylabel('BER','Interpreter','Latex'),xlabel('$$E_s/N_0 [dB]$$','Interpreter','Latex');
 ylim([9.9e-6 1]);

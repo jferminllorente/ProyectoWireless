@@ -62,3 +62,5 @@ snr=1:50;
 hold on;
 semilogy(snr,pepsk,'r*');
 grid on;
+
+%% Test SNR 

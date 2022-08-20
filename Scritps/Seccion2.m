@@ -30,63 +30,61 @@ xlabel('$$\phi_0(t)$$','Interpreter','Latex'),xlim(A_1*[-2 2]);
 xticks(A_1*[-2 -1 0 1 2]);
 xticklabels({'-2A','-A','0','A','2A'});
 
-figure; plot(real(ak_n),0*ak_n,'bo','LineWidth',LW),grid on,set(gca,'FontSize',12);
+figure; plot(ak_n,'bo','LineWidth',LW),grid on,set(gca,'FontSize',12);
 title(sprintf("Scatter Plot de BPSK con Eb/N0 = %gdB",EbN0));
-xlabel('$$\phi_0(t)$$','Interpreter','Latex'),xlim(A_1*[-2 2]);
-xticks(A_1*[-2 -1 0 1 2]);
-xticklabels({'-2A','-A','0','A','2A'});
+xlabel('$$\phi_0(t)$$','Interpreter','Latex'),xlim(A_1*[-2 2]),ylim(A_1*[-2 2]);
+xticks(A_1*[-2 -1 0 1 2]),yticks(A_1*[-2 -1 0 1 2]);
+xticklabels({'-2A','-A','0','A','2A'}),yticklabels({'-2A','-A','0','A','2A'});
 
 %% Estimación de la PEB
 NumB=1e7;
 N_1 = 1;
 Rs = 200e3;
-NumS_1=NumB/N_1;
-paso=2;     limite=40; %Parametros para la relevación de la curva.
-EbN0_dB=0:paso:limite;
-Peb1=0.*EbN0_dB;
-%Ruido
-N0_veces_1 = 1;
-WGNi_1 = sqrt(N0_veces_1/2)*randn(1,NumS_1); %RBG con varianza N0/2 = 1/2.
-WGNq_1 = sqrt(N0_veces_1/2)*randn(1,NumS_1); % En modelo son ind entonces genero dos veces.
-c_noise = (WGNi_1 + 1i*WGNq_1);
 
-% Simbolos_t_1=ReceptorOptimo(real(aki_1),imag(aki_1),A_1,M_1,Asignacion_coords_1); %Simbolos transmitidos.
+Nb_xloop = Rs;
+loop = floor(NumB/Nb_xloop);
+NumB = loop*Rs;
+Ns_xloop=Nb_xloop/N_1;
+
+paso=2;     limite=40; %Parametros para la relevación de la curva.
+EsN0_dB=0:paso:limite;
+Peb1=0.*EsN0_dB;
 
 jj=1;
-% T = 50; %Tiempo de simulación para que entren 1e7 bits. 1e7(bits)/200e3(bits/s) = 50 s
-
-for EbN0db=0:paso:limite
-    channel_50segs = CanalFlat(50,ts);
-%     EbN0db = EsN0db - 10*log10(N_1);
-    
-    %Señal
-    Es_1 = (10^(EbN0db/10))*var(c_noise);
-    bits_t=randi([0 1],1,NumB); %Bits transmitidos.
-    [Asignacion_bits_1, Asignacion_coords_1]=AsignacionBITSyCOORD(M_1,sqrt(Es_1)); %Por si quiero modificar el código entre bits y simbs.
-    [aki_1,~] = generarSimbolos(bits_t,sqrt(Es_1),M_1);
-    
-%     aki_1 = sqrt(Es_1)*aki_1;
-    Eb_1=Es_1/N_1; %Obtengo la energía de bit real en base a la realización de bits que tengo.
-    ak_1 = aki_1 + 1i*0;
-%     ak_1_ni = ak_1 + WGNi_1;
-%     ak_1_nq = WGNq_1;
-%     ak_1_n=(cos(theta)*ak_1_ni-sin(theta)*ak_1_nq + 1i*(ak_1_ni*sin(theta)+ak_1_nq*cos(theta)));
-    y_n = ak_1.*channel_50segs + c_noise;
+for EsN0db=0:paso:limite
+    p = (1:loop)*0;
+    %Ruido. Se decide generar uno distinto en cada cambio de SNR y no en
+    %cada loop porque eleva bastante el costo computacional (tiempo de
+    %simulación).
+    N0_veces_1 = 1;
+    WGNi_1 = sqrt(N0_veces_1/2)*randn(1,Ns_xloop); %RBG con varianza N0/2 = 1/2.
+    WGNq_1 = sqrt(N0_veces_1/2)*randn(1,Ns_xloop); % En modelo son ind entonces genero dos veces.
+    c_noise = (WGNi_1 + 1i*WGNq_1);
+    for iteracion=1:loop    
+        %Canal. Cada loop tiene una realización de canal distinta.
+        h = CanalFlat(1,ts);
+        %Señal. Cada loop tiene una realización de bits distinta.
+        Es_1 = (10^(EsN0db/10))*var(c_noise);
+        bits_t=randi([0 1],1,Nb_xloop); %Bits transmitidos.
+        [Asignacion_bits_1, Asignacion_coords_1]=AsignacionBITSyCOORD(M_1,sqrt(Es_1)); %Por si quiero modificar el código entre bits y simbs.
+        [aki_1,~] = generarSimbolos(bits_t,sqrt(Es_1),M_1);
+        ak_1 = aki_1 + 1i*0;
+        y_n = ak_1.*h + c_noise;
 %     Simbolos_r_1=ReceptorOptimo(real(y_n)./(channel_50segs),imag(y_n)./(channel_50segs),A_1,M_1,Asignacion_coords_1);
-    Simbolos_r_1=ReceptorOptimo(real(y_n).*conj(channel_50segs),imag(y_n).*conj(channel_50segs),sqrt(Es_1),M_1,Asignacion_coords_1);
 %     Dividiendo por Channel se cancelan los modulos y las fases se restan
 %     por lo que deja de estar presente la secuencia de ganancias de canal.
-    bits_r_1=ConvaBits(Simbolos_r_1,Asignacion_coords_1,M_1);
-    Peb1(jj)=sum(bits_r_1~=bits_t)/NumB;
+        Simbolos_r_1=ReceptorOptimo(real(y_n).*conj(h),imag(y_n).*conj(h),sqrt(Es_1),M_1,Asignacion_coords_1);
+        bits_r_1=ConvaBits(Simbolos_r_1,Asignacion_coords_1,M_1);
+        p(iteracion)=sum(bits_r_1~=bits_t)/Nb_xloop; 
+    end
+    Peb1(jj) = mean(p);
     jj=jj+1;
 end
-
 %% Graficos
-EbN0_veces = 10.^(EbN0_dB/10);
-% EbN0_veces = EsN0_veces/N_1;
-Peb_BPSK=qfunc(sqrt(2*EbN0_veces));%Igual a Pes
-Peb_BPSK_fading = 0.5*(1-sqrt(EbN0_veces./(1+EbN0_veces)));
-figure;semilogy(EbN0_dB,Peb1,EbN0_dB,Peb_BPSK,EbN0_dB,Peb_BPSK_fading,'--k','LineWidth',LW/4),legend('Relevada','Teórica AWGN','Teórica FADING'),set(gca,'FontSize',11);
+EsN0_veces = 10.^(EsN0_dB/10);
+Peb_BPSK=qfunc(sqrt(2*EsN0_veces));%Igual a Pes
+Peb_BPSK_fading = 0.5*(1-sqrt(EsN0_veces./(1+EsN0_veces)));
+figure;semilogy(EsN0_dB,Peb1,EsN0_dB,Peb_BPSK,EsN0_dB,Peb_BPSK_fading,'--k','LineWidth',LW/4),legend('Relevada','Teórica AWGN','Teórica FADING'),set(gca,'FontSize',11);
 title(sprintf("Curva de probabilidad de error de bit BPSK (%g bits)",NumB));
 grid on, ylabel('BER','Interpreter','Latex'),xlabel('$$E_s/N_0 [dB]$$','Interpreter','Latex');
 ylim([9.9e-6 1]);

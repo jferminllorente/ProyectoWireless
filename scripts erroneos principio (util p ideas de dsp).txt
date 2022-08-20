@@ -1,0 +1,10 @@
+%% Tercer enfoque
+Hf = fftshift(fft(mean(C,2))).';
+% Hf = fftshift(fft(h));
+% [tau_max,index_max] = max(angle(Hf));
+% [tau_min,index_min] = min(angle(Hf));
+% T_d3 = abs(tau_max/(2*pi*f(index_max)) - tau_min/(2*pi*f(index_min)));
+Hf_pha = angle(Hf(floor(length(Hf)*1.5/2):end))./f(floor(length(Hf)*1.5/2):end);
+tau_max = max(Hf_pha);
+tau_min = min(Hf_pha);
+T_d3 = abs(tau_max - tau_min);

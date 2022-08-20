@@ -5,8 +5,8 @@
 %               Desempeño con CSI parcial y tasa fija...
 %==========================================================================
 clc;    clear variables; close all;
-theta = 0;
 LW = 2;
+theta = 0;
 ts = 5e-6;
 M_1=2;    N_1=log2(M_1);
 NumS=M_1*250;
@@ -41,39 +41,35 @@ NumB=1e7;
 N_1 = 1;
 Rs = 200e3;
 NumS_1=NumB/N_1;
-paso=2;     limite=40; %Parametros para la relevación de la curva.
-EbN0_dB=0:paso:limite;
-Peb1=0.*EbN0_dB;
-%Ruido
+
 N0_veces_1 = 1;
 WGNi_1 = sqrt(N0_veces_1/2)*randn(1,NumS_1); %RBG con varianza N0/2 = 1/2.
 WGNq_1 = sqrt(N0_veces_1/2)*randn(1,NumS_1); % En modelo son ind entonces genero dos veces.
-c_noise = (WGNi_1 + 1i*WGNq_1);
+c_noise = WGNi_1 + 1i*WGNq_1;
 
-% Simbolos_t_1=ReceptorOptimo(real(aki_1),imag(aki_1),A_1,M_1,Asignacion_coords_1); %Simbolos transmitidos.
-
+bits_t=randi([0 1],1,NumB); %Bits transmitidos.
+[Asignacion_bits_1, Asignacion_coords_1]=AsignacionBITSyCOORD(M_1,A_1); %Por si quiero modificar el código entre bits y simbs.
+[aki_1,~] = generarSimbolos(bits_t,A_1,M_1);
+Simbolos_t_1=ReceptorOptimo(real(aki_1),imag(aki_1),A_1,M_1,Asignacion_coords_1); %Simbolos transmitidos.
+Es_1 = (10^(EbN0db/10))*var(c_noise);
+aki_1 = sqrt(Es_1)*aki_1;
+Eb_1=Es_1/N_1; %Obtengo la energía de bit real en base a la realización de bits que tengo.
+paso=5;     limite=75; %Parametros para la relevación de la curva.
+EbN0_dB=0:paso:limite;
+Peb1=0.*EbN0_dB;
 jj=1;
 % T = 50; %Tiempo de simulación para que entren 1e7 bits. 1e7(bits)/200e3(bits/s) = 50 s
-
+channel_50segs = CanalFlat(50,ts);
 for EbN0db=0:paso:limite
-    channel_50segs = CanalFlat(50,ts);
 %     EbN0db = EsN0db - 10*log10(N_1);
     
-    %Señal
-    Es_1 = (10^(EbN0db/10))*var(c_noise);
-    bits_t=randi([0 1],1,NumB); %Bits transmitidos.
-    [Asignacion_bits_1, Asignacion_coords_1]=AsignacionBITSyCOORD(M_1,sqrt(Es_1)); %Por si quiero modificar el código entre bits y simbs.
-    [aki_1,~] = generarSimbolos(bits_t,sqrt(Es_1),M_1);
-    
-%     aki_1 = sqrt(Es_1)*aki_1;
-    Eb_1=Es_1/N_1; %Obtengo la energía de bit real en base a la realización de bits que tengo.
     ak_1 = aki_1 + 1i*0;
 %     ak_1_ni = ak_1 + WGNi_1;
 %     ak_1_nq = WGNq_1;
 %     ak_1_n=(cos(theta)*ak_1_ni-sin(theta)*ak_1_nq + 1i*(ak_1_ni*sin(theta)+ak_1_nq*cos(theta)));
     y_n = ak_1.*channel_50segs + c_noise;
 %     Simbolos_r_1=ReceptorOptimo(real(y_n)./(channel_50segs),imag(y_n)./(channel_50segs),A_1,M_1,Asignacion_coords_1);
-    Simbolos_r_1=ReceptorOptimo(real(y_n).*conj(channel_50segs),imag(y_n).*conj(channel_50segs),sqrt(Es_1),M_1,Asignacion_coords_1);
+    Simbolos_r_1=ReceptorOptimo(real(y_n).*conj(channel_50segs),imag(y_n).*conj(channel_50segs),A_1,M_1,Asignacion_coords_1);
 %     Dividiendo por Channel se cancelan los modulos y las fases se restan
 %     por lo que deja de estar presente la secuencia de ganancias de canal.
     bits_r_1=ConvaBits(Simbolos_r_1,Asignacion_coords_1,M_1);
@@ -90,3 +86,5 @@ figure;semilogy(EbN0_dB,Peb1,EbN0_dB,Peb_BPSK,EbN0_dB,Peb_BPSK_fading,'--k','Lin
 title(sprintf("Curva de probabilidad de error de bit BPSK (%g bits)",NumB));
 grid on, ylabel('BER','Interpreter','Latex'),xlabel('$$E_s/N_0 [dB]$$','Interpreter','Latex');
 ylim([9.9e-6 1]);
+
+

@@ -85,7 +85,7 @@ for EsN0db=0:paso:limite
 end
 %% Graficos
 fprintf("Sistema %s",ModScheme(M));
-    
+
 EsN0_veces = 10.^(EsN0_dB/10);
 Peb_BPSK=qfunc(sqrt(2*EsN0_veces));%Igual a Pes
 Peb_BPSK_fading = 0.5*(1-sqrt(EsN0_veces./(1+EsN0_veces)));

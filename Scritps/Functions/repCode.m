@@ -1,4 +1,13 @@
-%Siempre devuelve vector fila.
+%==========================================================================
+%                   Código de repetición de orden n                      |¦
+%                                 JFL                                    |¦
+%==========================================================================
+%           y = repCode(x,n)                                             |¦
+%   x   --> Secuencia de datos sin codificar.                            |¦
+%   n   --> Cantidad de veces que se repite cada bit.                    |¦
+%                                                                        |¦
+%   y   --> Secuencia codificada (en formato fila).                      |¦
+%==========================================================================
 function y = repCode(x,n)
     dim = size(x);
     if(dim(1)>1)

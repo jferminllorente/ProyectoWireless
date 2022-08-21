@@ -1,7 +1,12 @@
 %==========================================================================
-%                      Block Interleaver
+%                          Block Interleaver
+%                                 JFL
+%   Se considera diversidad n (con n la profundidad) ya que es como tener n 
+%   canales en tiempo, lo que logra que la pendiente de la curva de 
+%   Peb vs. SNR caiga con SNR^n
 %==========================================================================
-%   x   --> Secuencia de datos.
+%           y = Interleaver(x,n)
+%   x   --> Secuencia de datos a entrelazar.
 %   n   --> Profundidad del interleaver.
 %
 %   y   --> Secuencia entrelazada (en formato fila).

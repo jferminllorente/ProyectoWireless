@@ -1,12 +1,14 @@
 %==========================================================================
-%                      Block Interleaver
+%                         Block Deinterleaver
+%                                 JFL
 %==========================================================================
-%   x   --> Secuencia de datos.
-%   n   --> Profundidad del interleaver.
+%           y = deInterleaver(x,n)
+%   x   --> Secuencia de datos entrelazada.
+%   n   --> Profundidad con la que se entrelazaron los datos.
 %
-%   y   --> Secuencia entrelazada (en formato fila).
+%   y   --> Secuencia desentrelazada (en formato fila).
 %==========================================================================
-function [y,Block] = deInterleaver(x,n)
+function y = deInterleaver(x,n)
     dim = size(x);
     if(dim(1)>1)    % Se revisa que ingrese vector fila.
         x = x.';

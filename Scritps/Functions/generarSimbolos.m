@@ -94,7 +94,8 @@ switch M
         ak = simbs_0*coordS0 + simbs_1*coordS1 + simbs_2*coordS2 + simbs_3*coordS3 + simbs_4*coordS4 + simbs_5*coordS5 +...
              simbs_6*coordS6 + simbs_7*coordS7 + simbs_8*coordS8 + simbs_9*coordS9 + simbs_10*coordS10 + simbs_11*coordS11 +...
              simbs_12*coordS12 + simbs_13*coordS13 + simbs_14*coordS14 + simbs_15*coordS15;
+        ak = ak*A;
 end
-aki=A*real(ak);
-akq=A*imag(ak);
+aki=real(ak);
+akq=imag(ak);
 end

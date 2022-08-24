@@ -8,7 +8,7 @@ addpath('./Functions');
 clc;    clear variables; close all;
 %============================CONFIGURACION=================================
 theta = 0;
-LW = 2;       ts = 5e-6;           M = 4 ;    
+LW = 2;       ts = 5e-6;           M = 2 ;    
 %==========================================================================
 N=log2(M);
 NumS=M*250;
@@ -72,11 +72,12 @@ for EsN0db=0:paso:limite
         [Asignacion_bits, Asignacion_coords]=AsignacionBITSyCOORD(M,A); %Por si quiero modificar el código entre bits y simbs.
         [aki,akq] = generarSimbolos(bits_t,A,M);
         ak = aki + 1i*akq;
+        A = sqrt(var(ak)/2);
         y_n = ak.*h + c_noise;
 %     Simbolos_r_1=ReceptorOptimo(real(y_n)./(channel_50segs),imag(y_n)./(channel_50segs),A_1,M,Asignacion_coords_1);
 %     Dividiendo por Channel se cancelan los modulos y las fases se restan
 %     por lo que deja de estar presente la secuencia de ganancias de canal.
-        Simbolos_r_1=ReceptorOptimo(real(y_n).*conj(h)./abs(h),imag(y_n).*conj(h)./abs(h),A,M,Asignacion_coords);
+        Simbolos_r_1=ReceptorOptimo(real(y_n./h),imag(y_n./h),A,M,Asignacion_coords);
         bits_r_1=ConvaBits(Simbolos_r_1,Asignacion_coords,M);
         p(iteracion)=sum(bits_r_1~=bits_t)/Nb_xloop; 
     end

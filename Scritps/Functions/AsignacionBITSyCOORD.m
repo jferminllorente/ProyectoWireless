@@ -22,21 +22,21 @@ switch M
         Asignacion_bits=[s0;s1;s2;s3];
         Asignacion_coords=[coordS0,coordS1,coordS2,coordS3];
     case 16
-        s0=[0 0 0 0];   coordS0=-3+31i;
+        s0=[0 0 0 0];   coordS0=-3+3*1i;
         s1=[0 0 0 1];   coordS1=-3+1i;
-        s2=[0 0 1 0];   coordS2=-3-31i;
+        s2=[0 0 1 0];   coordS2=-3-3*1i;
         s3=[0 0 1 1];   coordS3=-3 -1i;
-        s4=[0 1 0 0];   coordS4=-1+31i;
+        s4=[0 1 0 0];   coordS4=-1+3*1i;
         s5=[0 1 0 1];   coordS5=-1 +1i;
-        s6=[0 1 1 0];   coordS6=-1-31i;
+        s6=[0 1 1 0];   coordS6=-1-3*1i;
         s7=[0 1 1 1];   coordS7=-1-1i;
-        s8=[1 0 0 0];   coordS8=3+31i;
+        s8=[1 0 0 0];   coordS8=3+3*1i;
         s9=[1 0 0 1];   coordS9=3+1i;
-        s10=[1 0 1 0];  coordS10=3-31i;
+        s10=[1 0 1 0];  coordS10=3-3*1i;
         s11=[1 0 1 1];  coordS11=3-1i;
-        s12=[1 1 0 0];  coordS12=1+31i;
+        s12=[1 1 0 0];  coordS12=1+3*1i;
         s13=[1 1 0 1];  coordS13=1+1i;
-        s14=[1 1 1 0];  coordS14=1-31i;
+        s14=[1 1 1 0];  coordS14=1-3*1i;
         s15=[1 1 1 1];  coordS15=1-1i;
         
         Asignacion_bits=[s0;s1;s2;s3;s4;s5;s6;s7;s8;s9;s10;s11;s12;s13;s14;s15];

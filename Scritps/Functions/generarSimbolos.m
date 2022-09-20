@@ -42,21 +42,21 @@ switch M
  
     case 16  %16QAM
         s0=[0 0 0 0];   coordS0=-3+3*1i;
-        s1=[0 1 0 0];   coordS1=-1+3*1i;
-        s2=[1 1 0 0];   coordS2=1+3*1i;
-        s3=[1 0 0 0];   coordS3=3+3*1i;
-        s4=[0 0 0 1];   coordS4=-3+1i;
+        s1=[0 0 0 1];   coordS1=-3+1i;
+        s2=[0 0 1 0];   coordS2=-3-3*1i;
+        s3=[0 0 1 1];   coordS3=-3-1i;
+        s4=[0 1 0 0];   coordS4=-1+3*1i;
         s5=[0 1 0 1];   coordS5=-1 +1i;
-        s6=[1 1 0 1];   coordS6=1+1i;
-        s7=[1 0 0 1];   coordS7=3+1i;
-        s8=[0 0 1 1];   coordS8=-3 -1i;
-        s9=[0 1 1 1];   coordS9=-1-1i;
-        s10=[1 1 1 1];  coordS10=1-1i;
+        s6=[0 1 1 0];   coordS6=-1-3*1i;
+        s7=[0 1 1 1];   coordS7=-1-1i;
+        s8=[1 0 0 0];   coordS8=3+3*1i;
+        s9=[1 0 0 1];   coordS9=3+1i;
+        s10=[1 0 1 0];  coordS10=3-3*1i;
         s11=[1 0 1 1];  coordS11=3-1i;
-        s12=[0 0 1 0];  coordS12=-3-3*1i;
-        s13=[0 1 1 0];  coordS13=-1-3*1i;
+        s12=[1 1 0 0];  coordS12=1+3*1i;
+        s13=[1 1 0 1];  coordS13=1+1i;
         s14=[1 1 1 0];  coordS14=1-3*1i;
-        s15=[1 0 1 0];  coordS15=3-3*1i;
+        s15=[1 1 1 1];  coordS15=1-1i;
         simb_bits=reshape(b,[N NumS]);
         aux0=simb_bits(1:N,:)==s0.';
         aux1=simb_bits(1:N,:)==s1.';

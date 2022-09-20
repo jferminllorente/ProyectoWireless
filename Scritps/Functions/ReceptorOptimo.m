@@ -15,9 +15,11 @@
 %
 %   simb=ReceptorOptimo(ak_r_i,ak_r_q,A,M,AsignacionCoords)
 function simb=ReceptorOptimo(ak_r_i,ak_r_q,A,M,AsignacionCoords)
-    ak_r_q=real(ak_r_q);
+    if(imag(ak_r_q)~=0)
+        ak_r_q = imag(ak_r_q);
+    end
     simb_aux=zeros(M,length(ak_r_i));
-    switch M
+    switch M            
         case 2
             simb_aux(1,:)=(ak_r_i<0).*AsignacionCoords(1);
             simb_aux(2,:)=(ak_r_i>0).*AsignacionCoords(2);

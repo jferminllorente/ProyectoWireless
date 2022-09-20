@@ -25,7 +25,7 @@ switch M
         s0=[0 0 0 0];   coordS0=-3+3*1i;
         s1=[0 0 0 1];   coordS1=-3+1i;
         s2=[0 0 1 0];   coordS2=-3-3*1i;
-        s3=[0 0 1 1];   coordS3=-3 -1i;
+        s3=[0 0 1 1];   coordS3=-3-1i;
         s4=[0 1 0 0];   coordS4=-1+3*1i;
         s5=[0 1 0 1];   coordS5=-1 +1i;
         s6=[0 1 1 0];   coordS6=-1-3*1i;

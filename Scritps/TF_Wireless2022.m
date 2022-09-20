@@ -7,8 +7,20 @@ clc;    clear variables;    close all;
 
 %% Introducción
 T = 1; %Tiempo de simulación en segundos.
-CanalFlat;
+ts = 5e-6;
+h = CanalFlat(T,ts);
+fc=900e6;               % Frecuencia de portadora (Hz)
+V=60/3.6;  
 vel_ms = V;
+lambda=3e8/fc;          % Longitud de onda
+fDm=V/lambda;           % Doppler máximo
+N=round(T/ts);          % # muestras (divisible por 4D)
+fs=1/ts;                % Frecuencia de muestreo (Hz)
+D=round(fDm*N/fs);      % # de puntos para filtro Jakes (el total es 4D)
+fD=D*fs/N;              % Doppler máximo redondeado 
+Df=fD/D;               % Paso de frecuencia para la generación del espectro
+fr=-fD+Df:Df:fD-Df;    % Eje de frecuencias para filtro Jakes
+
 D_s = 2*V/lambda; %Doppler spread.
 T_c = 1/(4*D_s);    %Tiempo de coherencia.
 % Ancho de banda de coherencia se calcula como el soporte de A_C(deltaF) =
@@ -34,51 +46,51 @@ plot(ff,S_a_neg,'--r');
 legend('Realización','Teórico');
 
 %% Realizaciones y obtener PDP
-L = 100; %Realizaciones.
-C = zeros(length(h),L);
-C(:,1) = h;
-for i=2:L
-    CanalFlat;
-    C(:,i) = h;
-end
-A_c = mean(abs(C).^2,2);    %A_c(\tau)
-figure;
-plot((0:N-1)*ts, A_c)
-grid on, grid minor;
-title('A_c(\tau)')
-ylabel('Valor absoluto (veces)')
-xlabel('Tiempo (s)')
+% L = 100; %Realizaciones.
+% C = zeros(length(h),L);
+% C(:,1) = h;
+% for i=2:L
+%     CanalFlat;
+%     C(:,i) = h;
+% end
+% A_c = mean(abs(C).^2,2);    %A_c(\tau)
+% figure;
+% plot((0:N-1)*ts, A_c)
+% grid on, grid minor;
+% title('A_c(\tau)')
+% ylabel('Valor absoluto (veces)')
+% xlabel('Tiempo (s)')
 %% Primer enfoque
-p_t = A_c/(sum(A_c)*ts);
-figure;
-plot((0:N-1)*ts, p_t)
-grid on, grid minor;
-title('p_T(\tau)')
-ylabel('Valor absoluto (veces)')
-xlabel('Tiempo (s)')
-
-A_C_deltaf = fftshift(fft(A_c));
-df = fs/length(A_c);
-f = -fs/2 : df : fs/2 - df;
-figure;
-plot(f,abs(A_C_deltaf)),grid on, grid minor;
-title('A_C(\Delta f)')
-ylabel('Valor absoluto (veces)')
-xlabel('Tiempo (s)')
+% p_t = A_c/(sum(A_c)*ts);
+% figure;
+% plot((0:N-1)*ts, p_t)
+% grid on, grid minor;
+% title('p_T(\tau)')
+% ylabel('Valor absoluto (veces)')
+% xlabel('Tiempo (s)')
+% 
+% A_C_deltaf = fftshift(fft(A_c));
+% df = fs/length(A_c);
+% f = -fs/2 : df : fs/2 - df;
+% figure;
+% plot(f,abs(A_C_deltaf)),grid on, grid minor;
+% title('A_C(\Delta f)')
+% ylabel('Valor absoluto (veces)')
+% xlabel('Tiempo (s)')
 
 %% Segundo enfoque
-A_C_deltaf2_realizations = zeros(length(h)*2-1,L);
-Cf = fftshift(fft(C,[],1)*df);
-for i = 1:L
-    A_C_deltaf2_realizations(:,i) = xcorr(Cf(:,i),Cf(:,i));
-end
-A_C_deltaf2 = mean(A_C_deltaf2_realizations,2);
-[~,deltaf] = xcorr(Cf(:,1),Cf(:,1));
-figure;
-plot(deltaf,abs(A_C_deltaf2)),grid on, grid minor;
-title('A_C(\Delta f) segundo método')
-ylabel('Valor absoluto (veces)')
-xlabel('Tiempo (s)')
+% A_C_deltaf2_realizations = zeros(length(h)*2-1,L);
+% Cf = fftshift(fft(C,[],1)*df);
+% for i = 1:L
+%     A_C_deltaf2_realizations(:,i) = xcorr(Cf(:,i),Cf(:,i));
+% end
+% A_C_deltaf2 = mean(A_C_deltaf2_realizations,2);
+% [~,deltaf] = xcorr(Cf(:,1),Cf(:,1));
+% figure;
+% plot(deltaf,abs(A_C_deltaf2)),grid on, grid minor;
+% title('A_C(\Delta f) segundo método')
+% ylabel('Valor absoluto (veces)')
+% xlabel('Tiempo (s)')
 
 %% Verificar Tiempo de Coherencia de manera empirica.
 [AC_empirica,deltat] = xcorr(h,h);

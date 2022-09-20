@@ -17,7 +17,7 @@ function y = Interleaver(x,n)
         x = x.';
     end
     if(mod(length(x),n)~=0)
-        x = [x (1:mod(length(x),n))*0];
+        x = [x ((1:mod(length(x),n))*0+x(end))];    %Completo con el ultimo simbolo.
     end
     Block = reshape(x,[length(x)/n n]).';
     y = reshape(Block,1,[]);

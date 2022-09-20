@@ -7,8 +7,8 @@
 addpath('./Functions');
 clc;    clear variables; close all;
 %============================CONFIGURACION=================================
-theta = 0;
-LW = 2;       ts = 5e-6;           M = 16 ;    
+theta = 0;      REP_CODE_FLAG = 1;  INT_CODE_FLAG = 1;
+LW = 2;       ts = 5e-6;           M = 2 ;    
 %==========================================================================
 N=log2(M);
 % NumS=M*250;
@@ -39,9 +39,14 @@ N=log2(M);
 % xticklabels({'-2A','-A','0','A','2A'}),yticklabels({'-2A','-A','0','A','2A'});
 
 %% Estimación de la PEB
-NumB=1e7;
+NumB=1e6;
 Rs = 200e3;
-
+T = 1;
+n = 1;
+if (REP_CODE_FLAG == 1)
+    n = 4;
+%     T = n*T;
+end
 Ns_xloop = Rs;
 Nb_xloop=Ns_xloop*N;
 loop = floor(NumB/Nb_xloop);
@@ -53,7 +58,7 @@ Peb=0.*EsN0_dB;
 
 Es = 1;
 A = SymbEnergy2Amp(M,Es);
-
+[Asignacion_bits, Asignacion_coords]=AsignacionBITSyCOORD(M,A); %Por si quiero modificar el código entre bits y simbs.
 jj=1;
 for EsN0db=0:paso:limite
     p = (1:loop)*0;
@@ -62,27 +67,64 @@ for EsN0db=0:paso:limite
 
 %     Es = *var(c_noise);
 %     A = SymbEnergy2Amp(M,Es);
-    [Asignacion_bits, Asignacion_coords]=AsignacionBITSyCOORD(M,A); %Por si quiero modificar el código entre bits y simbs.
+    
     [aki,akq] = generarSimbolos(bits_t,A,M);
     ak = aki + 1i*akq;
+    if (REP_CODE_FLAG == 1)
+        ak_rep = repCod(ak,n);
+        ak = ak_rep;    %Para debuggin.
+    end
+%     if (INT_CODE_FLAG == 1)
+%         ak_int = Interleaver(ak,4);
+%         ak = ak_int;    %Para debuggin.
+%     end
 %     A = sqrt(var(ak)/2);
     %Ruido. Se decide generar uno distinto en cada cambio de SNR y no en
     %cada loop porque eleva bastante el costo computacional (tiempo de
     %simulación).
     N0_veces = var(ak)/(10^(EsN0db/10));
-    WGNi = sqrt(N0_veces/2)*randn(1,Ns_xloop); %RBG con varianza N0/2 = 1/2.
-    WGNq = sqrt(N0_veces/2)*randn(1,Ns_xloop); % En modelo son ind entonces genero dos veces.
-    c_noise = (WGNi + 1i*WGNq);
+    if (INT_CODE_FLAG ~=1)
+        WGNi = sqrt(N0_veces/2)*randn(1,Ns_xloop*n); %RBG con varianza N0/2 = 1/2.
+        WGNq = sqrt(N0_veces/2)*randn(1,Ns_xloop*n); % En modelo son ind entonces genero dos veces.
+        c_noise = (WGNi + 1i*WGNq);
+    else
+        noise_mat = zeros(n,Ns_xloop);
+        for i=1:n
+            WGNi = sqrt(N0_veces/2)*randn(1,Ns_xloop); %RBG con varianza N0/2 = 1/2.
+            WGNq = sqrt(N0_veces/2)*randn(1,Ns_xloop); % En modelo son ind entonces genero dos veces.
+            noise_mat(i,:) = (WGNi + 1i*WGNq);
+        end
+        c_noise = reshape(noise_mat,1,[]);
+    end
+    
     for iteracion=1:loop    
         %Canal. Cada loop tiene una realización de canal distinta.
-        h = CanalFlat(1,ts);
+        if (INT_CODE_FLAG ~= 1)
+            h = CanalFlat(n*T,ts);
+        else
+            h_mat = zeros(n,floor(T/ts)+1);
+            for i=1:n
+                h_mat(i,:) = CanalFlat(T,ts);
+            end
+            h = reshape(h_mat,1,[]);
+        end
+        
 %         h = 0*h + 1;
         
         y_n = ak.*h + c_noise;
+%         if(EsN0db == limite - paso)
+%             debug = 1;
+%         end
 %     Simbolos_r_1=ReceptorOptimo(real(y_n)./(channel_50segs),imag(y_n)./(channel_50segs),A_1,M,Asignacion_coords_1);
 %     Dividiendo por Channel se cancelan los modulos y las fases se restan
 %     por lo que deja de estar presente la secuencia de ganancias de canal.
         Simbolos_r_1=ReceptorOptimo(real(y_n./h),imag(y_n./h),A,M,Asignacion_coords);
+%         if (INT_CODE_FLAG == 1)
+%             Simbolos_r_1 = deInterleaver(Simbolos_r_1,n);
+%         end
+        if (REP_CODE_FLAG == 1)
+            Simbolos_r_1 = repDeco(Simbolos_r_1,n,M,Asignacion_coords);    %Simbolos ya decodificados.
+        end
         bits_r_1=ConvaBits(Simbolos_r_1,Asignacion_coords,M);
         p(iteracion)=sum(bits_r_1~=bits_t)/Nb_xloop; 
     end
@@ -90,7 +132,16 @@ for EsN0db=0:paso:limite
     jj=jj+1;
 end
 %% Graficos
-fprintf("Sistema %s\nSimulación Wireless por canal con fading Rayleigh\n%g bits simulados\n",ModScheme(M),NumB);
+fprintf("Simulación Wireless por canal con desvanecimiento Rayleigh.\nEsquema de modulación: %s",ModScheme(M));
+if(REP_CODE_FLAG == 1)
+    fprintf(" + código de repetición de %d veces",n);
+end
+if(INT_CODE_FLAG == 1)
+    fprintf(" + entrelazado de profundidad %d.\n",n);
+else
+    fprintf(".\n");
+end
+fprintf("%g bits simulados.\n",NumB);
 
 EsN0_veces = 10.^(EsN0_dB/10);
 Peb_BPSK=qfunc(sqrt(2*EsN0_veces));%Igual a Pes
@@ -100,16 +151,24 @@ Peb_16QAM_holgada=Pes_16QAM_holgada/4;
 Peb_BPSK_fading = 0.5*(1-sqrt(EsN0_veces./(1+EsN0_veces)));
 Peb_QPSK_fading = 0.5*(1-sqrt(EsN0_veces./(2+EsN0_veces)));
 Peb_16QAM_fading = 5/2./EsN0_veces;
+Peb_BPSK_fading_REPyINT = nchoosek(2*n-1,n)./(4*EsN0_veces).^n;
 figure;
 switch M
     case 2
-        semilogy(EsN0_dB,Peb,EsN0_dB,Peb_BPSK,EsN0_dB,Peb_BPSK_fading,'--k','LineWidth',LW/4);
+        if(REP_CODE_FLAG && INT_CODE_FLAG)
+            semilogy(EsN0_dB,Peb,EsN0_dB,Peb_BPSK,EsN0_dB,Peb_BPSK_fading_REPyINT,'--k','LineWidth',LW/4);
+        else
+            semilogy(EsN0_dB,Peb,EsN0_dB,Peb_BPSK,EsN0_dB,Peb_BPSK_fading,'--k','LineWidth',LW/4);
+        end
+        legend('Relevada','Teórica AWGN','Teórica FADING');
     case 4
         semilogy(EsN0_dB,Peb,EsN0_dB,Peb_QPSK,EsN0_dB,Peb_QPSK_fading,'--k','LineWidth',LW/4);
+        legend('Relevada','Teórica AWGN','Teórica FADING'),
     otherwise
         semilogy(EsN0_dB,Peb,EsN0_dB,Peb_16QAM_holgada,EsN0_dB,Peb_16QAM_fading,'--k','LineWidth',LW/4);
+        legend('Relevada','Cota AWGN','Asintótica FADING'),
 end
-legend('Relevada','Teórica AWGN','Teórica FADING'),set(gca,'FontSize',11);
+set(gca,'FontSize',11);
 title(sprintf("Curva de probabilidad de error de bit %s (%g bits)",ModScheme(M),NumB));
 grid on, ylabel('BER','Interpreter','Latex'),xlabel('$$E_s/N_0 [dB]$$','Interpreter','Latex');
 ylim([9.9e-6 1]);

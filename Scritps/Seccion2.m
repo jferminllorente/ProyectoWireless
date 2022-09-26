@@ -8,7 +8,7 @@ addpath('./Functions');
 clc;    clear variables; close all;
 %============================CONFIGURACION=================================
 theta = 0;      REP_CODE_FLAG = 1;  INT_CODE_FLAG = 1;
-LW = 2;       ts = 5e-6;           M = 2 ;    
+LW = 2;       ts = 5e-6;           M = 16 ;    
 %==========================================================================
 N=log2(M);
 % NumS=M*250;
@@ -69,11 +69,14 @@ for EsN0db=0:paso:limite
 %     A = SymbEnergy2Amp(M,Es);
     
     [aki,akq] = generarSimbolos(bits_t,A,M);
-    ak = aki + 1i*akq;
+    ak_t = aki + 1i*akq;
     if (REP_CODE_FLAG == 1)
-        ak_rep = repCod(ak,n);
+        ak_rep = repCod(ak_t,n);
         ak = ak_rep;    %Para debuggin.
+    else
+        ak = ak_t;
     end
+    
 %     if (INT_CODE_FLAG == 1)
 %         ak_int = Interleaver(ak,4);
 %         ak = ak_int;    %Para debuggin.
@@ -112,26 +115,36 @@ for EsN0db=0:paso:limite
 %         h = 0*h + 1;
         
         y_n = ak.*h + c_noise;
+        
+%         norm_h_aux = reshape(h,n,[]);
+%         norm = sqrt(sum(abs(norm_h_aux).^2));
+%         norm_h = repCod(norm,n);
+        
 %         if(EsN0db == limite - paso)
 %             debug = 1;
 %         end
 %     Simbolos_r_1=ReceptorOptimo(real(y_n)./(channel_50segs),imag(y_n)./(channel_50segs),A_1,M,Asignacion_coords_1);
 %     Dividiendo por Channel se cancelan los modulos y las fases se restan
 %     por lo que deja de estar presente la secuencia de ganancias de canal.
-        Simbolos_r_1=ReceptorOptimo(real(y_n./h),imag(y_n./h),A,M,Asignacion_coords);
+        Simbolos_r_1=ReceptorOptimo(real(y_n.*conj(h)./abs(h)),imag(y_n.*conj(h)./abs(h)),abs(h)*A,M,Asignacion_coords);
+        % Esta decisión de pasar amplitudes pesadas por h es para que el
+        % ruido solo sufra un cambio de fase y no cambio de amplitud.
 %         if (INT_CODE_FLAG == 1)
 %             Simbolos_r_1 = deInterleaver(Simbolos_r_1,n);
 %         end
         if (REP_CODE_FLAG == 1)
             Simbolos_r_1 = repDeco(Simbolos_r_1,n,M,Asignacion_coords);    %Simbolos ya decodificados.
         end
+        
         bits_r_1=ConvaBits(Simbolos_r_1,Asignacion_coords,M);
         p(iteracion)=sum(bits_r_1~=bits_t)/Nb_xloop; 
+%         p(iteracion)=sum(Simbolos_r_1 ~= ak_t)/Ns_xloop;
     end
     Peb(jj) = mean(p);
     jj=jj+1;
 end
-%% Graficos
+% Pes = Peb*N;
+%% Gráficos
 fprintf("Simulación Wireless por canal con desvanecimiento Rayleigh.\nEsquema de modulación: %s",ModScheme(M));
 if(REP_CODE_FLAG == 1)
     fprintf(" + código de repetición de %d veces",n);
@@ -163,10 +176,10 @@ switch M
         legend('Relevada','Teórica AWGN','Teórica FADING');
     case 4
         semilogy(EsN0_dB,Peb,EsN0_dB,Peb_QPSK,EsN0_dB,Peb_QPSK_fading,'--k','LineWidth',LW/4);
-        legend('Relevada','Teórica AWGN','Teórica FADING'),
+        legend('Relevada','Teórica AWGN','Teórica FADING');
     otherwise
         semilogy(EsN0_dB,Peb,EsN0_dB,Peb_16QAM_holgada,EsN0_dB,Peb_16QAM_fading,'--k','LineWidth',LW/4);
-        legend('Relevada','Cota AWGN','Asintótica FADING'),
+        legend('Relevada','Cota AWGN','Asintótica FADING');
 end
 set(gca,'FontSize',11);
 title(sprintf("Curva de probabilidad de error de bit %s (%g bits)",ModScheme(M),NumB));

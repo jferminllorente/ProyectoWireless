@@ -8,7 +8,7 @@ addpath('./Functions');
 clc;    clear variables; close all;
 %============================CONFIGURACION=================================
 theta = 0;      REP_CODE_FLAG = 1;  INT_CODE_FLAG = 1;
-LW = 2;       ts = 5e-6;           M = 16 ;    
+LW = 2;       ts = 5e-6;           M = 2 ;    
 %==========================================================================
 N=log2(M);
 % NumS=M*250;
@@ -39,7 +39,7 @@ N=log2(M);
 % xticklabels({'-2A','-A','0','A','2A'}),yticklabels({'-2A','-A','0','A','2A'});
 
 %% Estimación de la PEB
-NumB=1e6;
+NumB=1e7;
 Rs = 200e3;
 T = 1;
 n = 1;
@@ -97,6 +97,10 @@ for EsN0db=0:paso:limite
             WGNq = sqrt(N0_veces/2)*randn(1,Ns_xloop); % En modelo son ind entonces genero dos veces.
             noise_mat(i,:) = (WGNi + 1i*WGNq);
         end
+        norm_cnoise = abs(noise_mat).^2;
+        norm_cnoise = sqrt(sum(norm_cnoise));   %A esta altura ya tengo la norma de cada c = [c0 c1 c2 c3] para cada simbolo repetido.
+%         norm_cnoise = repmat(norm_cnoise,4,1);
+%         norm_cnoise = reshape(norm_cnoise,1,[]);    %A esta altura tengo la norma repetida.
         c_noise = reshape(noise_mat,1,[]);
     end
     
@@ -104,6 +108,7 @@ for EsN0db=0:paso:limite
         %Canal. Cada loop tiene una realización de canal distinta.
         if (INT_CODE_FLAG ~= 1)
             h = CanalFlat(n*T,ts);
+            h_mat = reshape(h,n,[]);
         else
             h_mat = zeros(n,floor(T/ts)+1);
             for i=1:n
@@ -126,15 +131,23 @@ for EsN0db=0:paso:limite
 %     Simbolos_r_1=ReceptorOptimo(real(y_n)./(channel_50segs),imag(y_n)./(channel_50segs),A_1,M,Asignacion_coords_1);
 %     Dividiendo por Channel se cancelan los modulos y las fases se restan
 %     por lo que deja de estar presente la secuencia de ganancias de canal.
-        Simbolos_r_1=ReceptorOptimo(real(y_n.*conj(h)./abs(h)),imag(y_n.*conj(h)./abs(h)),abs(h)*A,M,Asignacion_coords);
+%         h_mat = reshape(h,n,[]);  %Si no estoy generando 4 canales indps.
+        if (REP_CODE_FLAG == 1)
+            y_mrl = reshape(y_n,n,[]).*conj(h_mat);
+            y_mrl = sum(y_mrl)./norm_cnoise;
+            Simbolos_r_1=ReceptorOptimo(real(y_mrl),imag(y_mrl),A*norm_cnoise,M,Asignacion_coords);
+        else
+            Simbolos_r_1=ReceptorOptimo(real(y_n./h),imag(y_n./h),A,M,Asignacion_coords);
+        end
+        
         % Esta decisión de pasar amplitudes pesadas por h es para que el
         % ruido solo sufra un cambio de fase y no cambio de amplitud.
 %         if (INT_CODE_FLAG == 1)
 %             Simbolos_r_1 = deInterleaver(Simbolos_r_1,n);
 %         end
-        if (REP_CODE_FLAG == 1)
-            Simbolos_r_1 = repDeco(Simbolos_r_1,n,M,Asignacion_coords);    %Simbolos ya decodificados.
-        end
+%         if (REP_CODE_FLAG == 1) %Es como si los simbolos ya hubiesen sido deInterleaved.
+%             Simbolos_r_1 = repDeco(Simbolos_r_1,n,M,Asignacion_coords);    %Simbolos ya decodificados.
+%         end
         
         bits_r_1=ConvaBits(Simbolos_r_1,Asignacion_coords,M);
         p(iteracion)=sum(bits_r_1~=bits_t)/Nb_xloop; 
@@ -159,7 +172,7 @@ fprintf("%g bits simulados.\n",NumB);
 EsN0_veces = 10.^(EsN0_dB/10);
 Peb_BPSK=qfunc(sqrt(2*EsN0_veces));%Igual a Pes
 Peb_QPSK=qfunc(sqrt(2*EsN0_veces/2));  %Dos BPSK ind en fase y cuadratura.
-Pes_16QAM_holgada=15*qfunc(sqrt(4/5*EsN0_veces/4));
+Pes_16QAM_holgada=3*qfunc(sqrt(4/5*EsN0_veces/4));
 Peb_16QAM_holgada=Pes_16QAM_holgada/4;
 Peb_BPSK_fading = 0.5*(1-sqrt(EsN0_veces./(1+EsN0_veces)));
 Peb_QPSK_fading = 0.5*(1-sqrt(EsN0_veces./(2+EsN0_veces)));

@@ -8,7 +8,7 @@ addpath('./Functions');
 clc;    clear variables; close all;
 %============================CONFIGURACION=================================
 theta = 0;      REP_CODE_FLAG = 1;  INT_CODE_FLAG = 1;
-LW = 2;       ts = 5e-6;           M = 2 ;    
+LW = 2;       ts = 5e-6;           M = 16 ;    
 %==========================================================================
 N=log2(M);
 % NumS=M*250;
@@ -116,6 +116,8 @@ for EsN0db=0:paso:limite
             end
             h = reshape(h_mat,1,[]);
         end
+        norm_hmat = abs(h_mat).^2;
+        norm_hmat = sqrt(sum(norm_hmat));
         
 %         h = 0*h + 1;
         
@@ -134,8 +136,8 @@ for EsN0db=0:paso:limite
 %         h_mat = reshape(h,n,[]);  %Si no estoy generando 4 canales indps.
         if (REP_CODE_FLAG == 1)
             y_mrl = reshape(y_n,n,[]).*conj(h_mat);
-            y_mrl = sum(y_mrl)./norm_cnoise;
-            Simbolos_r_1=ReceptorOptimo(real(y_mrl),imag(y_mrl),A*norm_cnoise,M,Asignacion_coords);
+            y_mrl = sum(y_mrl)./norm_hmat;
+            Simbolos_r_1=ReceptorOptimo(real(y_mrl),imag(y_mrl),A*norm_hmat,M,Asignacion_coords);
         else
             Simbolos_r_1=ReceptorOptimo(real(y_n./h),imag(y_n./h),A,M,Asignacion_coords);
         end
@@ -177,7 +179,8 @@ Peb_16QAM_holgada=Pes_16QAM_holgada/4;
 Peb_BPSK_fading = 0.5*(1-sqrt(EsN0_veces./(1+EsN0_veces)));
 Peb_QPSK_fading = 0.5*(1-sqrt(EsN0_veces./(2+EsN0_veces)));
 Peb_16QAM_fading = 5/2./EsN0_veces;
-Peb_BPSK_fading_REPyINT = nchoosek(2*n-1,n)./(4*EsN0_veces).^n;
+Pendiente = 1./(4*EsN0_veces).^n;
+Peb_BPSK_fading_REPyINT = nchoosek(2*n-1,n)./Pendiente;
 figure;
 switch M
     case 2
@@ -188,11 +191,22 @@ switch M
         end
         legend('Relevada','Teórica AWGN','Teórica FADING');
     case 4
-        semilogy(EsN0_dB,Peb,EsN0_dB,Peb_QPSK,EsN0_dB,Peb_QPSK_fading,'--k','LineWidth',LW/4);
-        legend('Relevada','Teórica AWGN','Teórica FADING');
+        if(REP_CODE_FLAG && INT_CODE_FLAG)
+            semilogy(EsN0_dB,Peb,EsN0_dB,Peb_QPSK,EsN0_dB,Pendiente,'--k','LineWidth',LW/4);
+            legend('Relevada','Teórica AWGN','Pendiente teórica FADING');
+        else
+            semilogy(EsN0_dB,Peb,EsN0_dB,Peb_QPSK,EsN0_dB,Peb_QPSK_fading,'--k','LineWidth',LW/4);
+            legend('Relevada','Teórica AWGN','Teórica FADING');
+        end
+        
     otherwise
-        semilogy(EsN0_dB,Peb,EsN0_dB,Peb_16QAM_holgada,EsN0_dB,Peb_16QAM_fading,'--k','LineWidth',LW/4);
-        legend('Relevada','Cota AWGN','Asintótica FADING');
+        if(REP_CODE_FLAG && INT_CODE_FLAG)
+            semilogy(EsN0_dB,Peb,EsN0_dB,Peb_16QAM_holgada,EsN0_dB,Pendiente,'--k','LineWidth',LW/4);
+            legend('Relevada','Teórica AWGN','Pendiente teórica FADING');
+        else
+            semilogy(EsN0_dB,Peb,EsN0_dB,Peb_16QAM_holgada,EsN0_dB,Peb_16QAM_fading,'--k','LineWidth',LW/4);
+            legend('Relevada','Teórica AWGN','Asintótica FADING');
+        end
 end
 set(gca,'FontSize',11);
 title(sprintf("Curva de probabilidad de error de bit %s (%g bits)",ModScheme(M),NumB));

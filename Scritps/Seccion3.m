@@ -12,33 +12,46 @@ LW = 2;       ts = 5e-6;
 INTERVAL_SET = 1;   INTERVAL_CENTER = 2;    INTERVAL_END = 3;
 Interval_OP = [1 1 0; 1 2 1; 1 0 -1;0 1 0];    OP = INTERVAL_SET;
 
+NONE  = 0;  %   - No se transmite nada.                    (0)
+BPSK4 = 1;  %   - BPSK4 : BPSK con código de repetición 4. (1)  
+QPSK4 = 2;  %   - QPSK4 : QPSK con código de repetición 4. (2)    
+QPSK2 = 3;  %   - QPSK2 : QPSK con código de repetición 2. (3)
+QPSK  = 4;  %   - QPSK  : QPSK sin codigo de repetición.   (4)
+QAM16 = 5;  %   - QAM16 : 16QAM sin código de repetición.  (5)
+
 %% Estimación de la PEB
 NumB=1e7;
 Rs = 200e3;
 T = 50;
-h = CanalFlat(T,ts);
-EbN0db = 0;     EbN0veces = 10^(EbN0db/10);
-
+h = CanalFlat(2*T,ts);
+EsN0dB = 0;     EsN0veces = 10^(EsN0dB/10);
+bits_t=randi([0 1],1,NumB);
 T_c = 0.018;
 samples_in_Tc = round(T_c/ts);
 loop = floor(NumB/samples_in_Tc);
+instantes_pinchados = 0;
+contador = 0;
 for ii = 1:loop
+    i = ii - instantes_pinchados;
+%     disp("i");
     indx_c = floor( (Interval_OP(2,OP)*(ii-Interval_OP(1,OP)) + Interval_OP(4,OP)) *samples_in_Tc/Interval_OP(2,OP)) + Interval_OP(3,OP);   %Indice para tomar el valor en el inicio, medio o final del intervalo de largo T_c.
-    SNReff = 20*log10(abs(c(indx_c))) + EbN0dB;
-    SNRrange = (SNReff<-10)*0 + (SNReff>=-10 && SNReff<-5)*1 + ...
-        (SNReff>=-5 && SNReff<0)*2 + (SNReff>=0 && SNReff<5)*3 + ...
-        (SNReff>=5 && SNReff<10)*4 + (SNReff>=10)*5 ;
+    SNReff = 20*log10(abs(h(indx_c))) + EsN0dB;
+    SNRrange = (SNReff<-10)*NONE + (SNReff>=-10 && SNReff<-5)*BPSK4 + ...
+        (SNReff>=-5 && SNReff<0)*QPSK4 + (SNReff>=0 && SNReff<5)*QPSK2 + ...
+        (SNReff>=5 && SNReff<10)*QPSK + (SNReff>=10)*QAM16 ;
     switch SNRrange
-        case 0  % No se transmite nada si es menor que -10dB.
+        case NONE  % No se transmite nada si es menor que -10dB.
             % Aca tengo que dividir en vectores de 3600 y transmitir ahi.
             % Quizas con un reshape...
-        case 1  % BPSK con código de repetición 4 entre -10 y -5dB.
+            instantes_pinchados = instantes_pinchados + 1;
+        case BPSK4  % BPSK con código de repetición 4 entre -10 y -5dB.
+            aux_bits = EtEwirelessComm(bits_t((i-1)*samples_in_Tc+1:i*samples_in_Tc),h((i-1)*samples_in_Tc+1:i*samples_in_Tc),BPSK4,EsN0dB,OP);
+            contador = contador + 1;
+        case QPSK4  % QPSK con código de repetición 4 entre -5 y 0dB.
             
-        case 2  % QPSK con código de repetición 4 entre -5 y 0dB.
+        case QPSK2  % QPSK con código de repetición 2 entre 0 y 5dB.
             
-        case 3  % QPSK con código de repetición 2 entre 0 y 5dB.
-            
-        case 4  % QPSK entre 5 y 10dB.
+        case QPSK  % QPSK entre 5 y 10dB.
             
         otherwise % 16-QAM si es mayor que 10dB.
             

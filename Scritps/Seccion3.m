@@ -29,8 +29,9 @@ bits_t=randi([0 1],1,NumB);
 T_c = 0.018;
 samples_in_Tc = round(T_c/ts);
 loop = floor(NumB/samples_in_Tc);
-instantes_pinchados = 0;
-contador = 0;
+instantes_pinchados = 0;    BPSK4_times = 0;    QPSK4_times = 0;    
+QPSK2_times = 0;    QPSK_times = 0;     QAM16_times = 0;
+% contador = 0;
 for ii = 1:loop
     i = ii - instantes_pinchados;
 %     disp("i");
@@ -46,15 +47,15 @@ for ii = 1:loop
             instantes_pinchados = instantes_pinchados + 1;
         case BPSK4  % BPSK con código de repetición 4 entre -10 y -5dB.
             aux_bits = EtEwirelessComm(bits_t((i-1)*samples_in_Tc+1:i*samples_in_Tc),h((i-1)*samples_in_Tc+1:i*samples_in_Tc),BPSK4,EsN0dB,OP);
-            contador = contador + 1;
+            BPSK4_times = BPSK4_times + 1;
         case QPSK4  % QPSK con código de repetición 4 entre -5 y 0dB.
-            
+            QPSK4_times = QPSK4_times + 1;
         case QPSK2  % QPSK con código de repetición 2 entre 0 y 5dB.
-            
+            QPSK2_times = QPSK2_times + 1;
         case QPSK  % QPSK entre 5 y 10dB.
-            
+            QPSK_times = QPSK_times + 1;
         otherwise % 16-QAM si es mayor que 10dB.
-            
+            QAM16_times = QAM16_times + 1;
     end
 end
 

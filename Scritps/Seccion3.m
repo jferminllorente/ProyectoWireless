@@ -32,9 +32,11 @@ loop = floor(NumB/samples_in_Tc);
 instantes_pinchados = 0;    BPSK4_times = 0;    QPSK4_times = 0;    
 QPSK2_times = 0;    QPSK_times = 0;     QAM16_times = 0;
 % contador = 0;
-for ii = 1:loop
+Bindx = 1;  ii=1;
+bits_r = [];
+while (Bindx<=(NumB-samples_in_Tc) && ii<=loop)
     i = ii - instantes_pinchados;
-%     disp("i");
+
     indx_c = floor( (Interval_OP(2,OP)*(ii-Interval_OP(1,OP)) + Interval_OP(4,OP)) *samples_in_Tc/Interval_OP(2,OP)) + Interval_OP(3,OP);   %Indice para tomar el valor en el inicio, medio o final del intervalo de largo T_c.
     SNReff = 20*log10(abs(h(indx_c))) + EsN0dB;
     SNRrange = (SNReff<-10)*NONE + (SNReff>=-10 && SNReff<-5)*BPSK4 + ...
@@ -46,17 +48,24 @@ for ii = 1:loop
             % Quizas con un reshape...
             instantes_pinchados = instantes_pinchados + 1;
         case BPSK4  % BPSK con código de repetición 4 entre -10 y -5dB.
-            aux_bits = EtEwirelessComm(bits_t((i-1)*samples_in_Tc+1:i*samples_in_Tc),h((i-1)*samples_in_Tc+1:i*samples_in_Tc),BPSK4,EsN0dB,OP);
+%             aux_bits = EtEwirelessComm(bits_t((i-1)*samples_in_Tc+1:i*samples_in_Tc),h((i-1)*samples_in_Tc+1:i*samples_in_Tc),BPSK4,EsN0dB,OP);
+            [aux_bits,Bindx] = EtEwirelessComm(bits_t,h((i-1)*samples_in_Tc+1:i*samples_in_Tc),Bindx,BPSK4,EsN0dB,OP);
             BPSK4_times = BPSK4_times + 1;
         case QPSK4  % QPSK con código de repetición 4 entre -5 y 0dB.
             QPSK4_times = QPSK4_times + 1;
+%             [aux_bits,Bindx] = EtEwirelessComm(bits_t,h((i-1)*samples_in_Tc+1:i*samples_in_Tc),Bindx,QPSK4,EsN0dB,OP);
         case QPSK2  % QPSK con código de repetición 2 entre 0 y 5dB.
             QPSK2_times = QPSK2_times + 1;
+%             [aux_bits,Bindx] = EtEwirelessComm(bits_t,h((i-1)*samples_in_Tc+1:i*samples_in_Tc),Bindx,QPSK2,EsN0dB,OP);
         case QPSK  % QPSK entre 5 y 10dB.
             QPSK_times = QPSK_times + 1;
+            [aux_bits,Bindx] = EtEwirelessComm(bits_t,h((i-1)*samples_in_Tc+1:i*samples_in_Tc),Bindx,QPSK,EsN0dB,OP);
         otherwise % 16-QAM si es mayor que 10dB.
             QAM16_times = QAM16_times + 1;
+            [aux_bits,Bindx] = EtEwirelessComm(bits_t,h((i-1)*samples_in_Tc+1:i*samples_in_Tc),Bindx,QAM16,EsN0dB,OP);
     end
+    ii = ii + 1;
+    bits_r = [bits_r aux_bits];
 end
 
 % n = 1;

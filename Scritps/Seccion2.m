@@ -180,7 +180,7 @@ Peb_BPSK_fading = 0.5*(1-sqrt(EsN0_veces./(1+EsN0_veces)));
 Peb_QPSK_fading = 0.5*(1-sqrt(EsN0_veces./(2+EsN0_veces)));
 Peb_16QAM_fading = 5/2./EsN0_veces;
 Pendiente = 1./(4*EsN0_veces).^n;
-Peb_BPSK_fading_REPyINT = nchoosek(2*n-1,n)./Pendiente;
+Peb_BPSK_fading_REPyINT = nchoosek(2*n-1,n).*Pendiente;
 figure;
 switch M
     case 2

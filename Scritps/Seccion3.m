@@ -10,7 +10,7 @@ clc;    clear variables; close all;
 %============================CONFIGURACION=================================
 LW = 2;       ts = 5e-6;  
 INTERVAL_SET = 1;   INTERVAL_CENTER = 2;    INTERVAL_END = 3;
-Interval_OP = [1 1 0; 1 2 1; 1 0 -1;0 1 0];    OP = INTERVAL_CENTER;
+Interval_OP = [1 1 0; 1 2 1; 1 0 -1;0 1 0];    OP = INTERVAL_SET;
 
 NONE  = 0;  %   - No se transmite nada.                    (0)
 BPSK4 = 1;  %   - BPSK4 : BPSK con código de repetición 4. (1)  
@@ -30,8 +30,9 @@ samples_in_Tc = round(T_c/ts);
 loop = floor(NumB/samples_in_Tc);
 
 % contador = 0;
-EsN0dB_vect = 0:10;
+EsN0dB_vect = 0:40;
 p = EsN0dB_vect*0;
+R = EsN0dB_vect*0;
 for jj = 1:length(EsN0dB_vect)
     times0_NONE = 0;    times1_BPSK4 = 0;    times2_QPSK4 = 0;    
     times3_QPSK2 = 0;    times4_QPSK = 0;     times5_QAM16 = 0;
@@ -50,6 +51,7 @@ for jj = 1:length(EsN0dB_vect)
         SNRrange = (SNReff<-10)*NONE + (SNReff>=-10 && SNReff<-5)*BPSK4 + ...
             (SNReff>=-5 && SNReff<0)*QPSK4 + (SNReff>=0 && SNReff<5)*QPSK2 + ...
             (SNReff>=5 && SNReff<10)*QPSK + (SNReff>=10)*QAM16 ;
+%         SNRrange = QAM16;
         switch SNRrange
             case NONE  % No se transmite nada si es menor que -10dB.
                 % Aca tengo que dividir en vectores de 3600 y transmitir ahi.
@@ -58,24 +60,26 @@ for jj = 1:length(EsN0dB_vect)
                 aux_bits = [];
             case BPSK4  % BPSK con código de repetición 4 entre -10 y -5dB.
     %             aux_bits = EtEwirelessComm(bits_t((i-1)*samples_in_Tc+1:i*samples_in_Tc),h((i-1)*samples_in_Tc+1:i*samples_in_Tc),BPSK4,EsN0dB,OP);
-                [aux_bits,Bindx] = EtEwirelessComm(bits_t,h((i-1)*samples_in_Tc+1:i*samples_in_Tc),Bindx,BPSK4,EsN0dB);
+                [aux_bits,Bindx] = EtEwirelessComm(bits_t,h((ii-1)*samples_in_Tc+1:ii*samples_in_Tc),Bindx,BPSK4,EsN0dB);
                 times1_BPSK4 = times1_BPSK4 + 1;
             case QPSK4  % QPSK con código de repetición 4 entre -5 y 0dB.
                 times2_QPSK4 = times2_QPSK4 + 1;
-                [aux_bits,Bindx] = EtEwirelessComm(bits_t,h((i-1)*samples_in_Tc+1:i*samples_in_Tc),Bindx,QPSK4,EsN0dB);
+                [aux_bits,Bindx] = EtEwirelessComm(bits_t,h((ii-1)*samples_in_Tc+1:ii*samples_in_Tc),Bindx,QPSK4,EsN0dB);
             case QPSK2  % QPSK con código de repetición 2 entre 0 y 5dB.
                 times3_QPSK2 = times3_QPSK2 + 1;
-                [aux_bits,Bindx] = EtEwirelessComm(bits_t,h((i-1)*samples_in_Tc+1:i*samples_in_Tc),Bindx,QPSK2,EsN0dB);
+                [aux_bits,Bindx] = EtEwirelessComm(bits_t,h((ii-1)*samples_in_Tc+1:ii*samples_in_Tc),Bindx,QPSK2,EsN0dB);
             case QPSK  % QPSK entre 5 y 10dB.
                 times4_QPSK = times4_QPSK + 1;
-                [aux_bits,Bindx] = EtEwirelessComm(bits_t,h((i-1)*samples_in_Tc+1:i*samples_in_Tc),Bindx,QPSK,EsN0dB);
+                [aux_bits,Bindx] = EtEwirelessComm(bits_t,h((ii-1)*samples_in_Tc+1:ii*samples_in_Tc),Bindx,QPSK,EsN0dB);
             otherwise % 16-QAM si es mayor que 10dB.
                 times5_QAM16 = times5_QAM16 + 1;
-                [aux_bits,Bindx] = EtEwirelessComm(bits_t,h((i-1)*samples_in_Tc+1:i*samples_in_Tc),Bindx,QAM16,EsN0dB);
+                [aux_bits,Bindx] = EtEwirelessComm(bits_t,h((ii-1)*samples_in_Tc+1:ii*samples_in_Tc),Bindx,QAM16,EsN0dB);
         end
         ii = ii + 1;
         bits_r = [bits_r aux_bits];
     end
+    time_sim = (ii-1)*samples_in_Tc*ts; %Ultimo indice tomado del canal, multiplicado por Ts para tener el tiempo.
+    R(jj) = length(bits_r)/time_sim;    %Tasa media para este valor de SNR.
     bits_tt = bits_t(1:length(bits_r));  %Se descartan los bits que no se transmitieron...
     p(jj) = sum(bits_r~=bits_tt)/length(bits_tt);
 %     clc;
@@ -88,8 +92,6 @@ for jj = 1:length(EsN0dB_vect)
 %     fprintf("16QAM:       %d\n",times5_QAM16);
 end
 
-fprintf("Cantidad de bits transmitidos: %d\n",length(bits_t));
-fprintf("Probabilidad de error de bit : %f\n\n",p);
 % fprintf("Veces que se transmitió con cada sistema:\n");
 % fprintf("Pinchado:    %d\n",times0_NONE);
 % fprintf("BPSK(rep 4): %d\n",times1_BPSK4);
@@ -270,3 +272,8 @@ set(gca,'FontSize',11);
 title("Curva de probabilidad de error de bit tasa variable");
 grid on, ylabel('BER','Interpreter','Latex'),xlabel('$$E_s/N_0 [dB]$$','Interpreter','Latex');
 ylim([9.9e-6 1]);
+figure;
+plot(EsN0dB_vect,R,'LineWidth',LW/4);
+set(gca,'FontSize',11);
+title("Tasa media obtenida");
+grid on, ylabel('Rate [bits/s]','Interpreter','Latex'),xlabel('$$E_s/N_0 [dB]$$','Interpreter','Latex');

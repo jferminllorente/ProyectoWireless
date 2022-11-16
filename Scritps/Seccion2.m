@@ -39,6 +39,9 @@ N=log2(M);
 % xticklabels({'-2A','-A','0','A','2A'}),yticklabels({'-2A','-A','0','A','2A'});
 
 %% Estimación de la PEB
+Tc = 0.0162;
+samps_inTc = floor(Ts/ts);
+samps_toDecorr = 10*samps_inTc;
 NumB=1e7;
 Rs = 200e3;
 T = 1;
@@ -77,10 +80,10 @@ for EsN0db=0:paso:limite
         ak = ak_t;
     end
     
-%     if (INT_CODE_FLAG == 1)
-%         ak_int = Interleaver(ak,4);
-%         ak = ak_int;    %Para debuggin.
-%     end
+    if (INT_CODE_FLAG == 1)
+        ak_int = Interleaver(ak,samps_toDecorr);
+        ak = ak_int;    %Para debuggin.
+    end
 %     A = sqrt(var(ak)/2);
     %Ruido. Se decide generar uno distinto en cada cambio de SNR y no en
     %cada loop porque eleva bastante el costo computacional (tiempo de

@@ -7,18 +7,20 @@
 %==========================================================================
 %           y = Interleaver(x,n)
 %   x   --> Secuencia de datos a entrelazar.
-%   n   --> Profundidad del interleaver.
+%   n   --> Profundidad del interleaver. mmm
 %
 %   y   --> Secuencia entrelazada (en formato fila).
 %==========================================================================
-function y = Interleaver(x,n)
+function [y,ceros] = Interleaver(x,n)
     dim = size(x);
     if(dim(1)>1)    % Se revisa que ingrese vector fila.
         x = x.';
     end
     if(mod(length(x),n)~=0)
-        x = [x ((1:mod(length(x),n))*0+x(end))];    %Completo con el ultimo simbolo.
+        ceros = (n-mod(length(x),n));
+        x = [x (1:(n-mod(length(x),n)))*0];    %Completo con ceros.
     end
     Block = reshape(x,[length(x)/n n]).';
     y = reshape(Block,1,[]);
+    
 end

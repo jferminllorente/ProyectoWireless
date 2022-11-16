@@ -5,7 +5,8 @@
 %               Desempeño con CSI parcial y tasa fija...
 %==========================================================================
 addpath('./Functions');
-clc;    clear variables; close all;
+clc;    clear variables;
+% close all;
 %============================CONFIGURACION=================================
 theta = 0;      REP_CODE_FLAG = 1;  INT_CODE_FLAG = 1;
 LW = 2;       ts = 5e-6;           M = 16 ;    
@@ -40,9 +41,9 @@ N=log2(M);
 
 %% Estimación de la PEB
 Tc = 0.0162;
-samps_inTc = floor(Ts/ts);
-samps_toDecorr = 10*samps_inTc;
-NumB=1e7;
+samps_inTc = floor(Tc/ts);
+
+NumB=5e7;
 Rs = 200e3;
 T = 1;
 n = 1;
@@ -50,10 +51,14 @@ if (REP_CODE_FLAG == 1)
     n = 4;
 %     T = n*T;
 end
+samps_toDecorr = 0*20*samps_inTc + 4;
+samps_toDecorr = samps_toDecorr - mod(samps_toDecorr,n);
+
 Ns_xloop = Rs;
 Nb_xloop=Ns_xloop*N;
-loop = floor(NumB/Nb_xloop);
+loop = ceil(NumB/Nb_xloop);
 NumS = loop*Ns_xloop;
+NumB = loop*Nb_xloop;
 
 paso=2;     limite=40; %Parametros para la relevación de la curva.
 EsN0_dB=0:paso:limite;
@@ -66,7 +71,7 @@ jj=1;
 for EsN0db=0:paso:limite
     p = (1:loop)*0;
     %Señal. Cada loop tiene una realización de bits distinta.
-    bits_t=randi([0 1],1,Nb_xloop); %Bits transmitidos.
+    bits_t = randi([0 1],1,Nb_xloop); %Bits transmitidos.
 
 %     Es = *var(c_noise);
 %     A = SymbEnergy2Amp(M,Es);
@@ -81,8 +86,10 @@ for EsN0db=0:paso:limite
     end
     
     if (INT_CODE_FLAG == 1)
-        ak_int = Interleaver(ak,samps_toDecorr);
+        [ak_int,ceros] = Interleaver(ak,samps_toDecorr);
         ak = ak_int;    %Para debuggin.
+    else
+        ceros = 0;
     end
 %     A = sqrt(var(ak)/2);
     %Ruido. Se decide generar uno distinto en cada cambio de SNR y no en
@@ -94,17 +101,10 @@ for EsN0db=0:paso:limite
         WGNq = sqrt(N0_veces/2)*randn(1,Ns_xloop*n); % En modelo son ind entonces genero dos veces.
         c_noise = (WGNi + 1i*WGNq);
     else
-        noise_mat = zeros(n,Ns_xloop);
-        for i=1:n
-            WGNi = sqrt(N0_veces/2)*randn(1,Ns_xloop); %RBG con varianza N0/2 = 1/2.
-            WGNq = sqrt(N0_veces/2)*randn(1,Ns_xloop); % En modelo son ind entonces genero dos veces.
-            noise_mat(i,:) = (WGNi + 1i*WGNq);
-        end
-        norm_cnoise = abs(noise_mat).^2;
-        norm_cnoise = sqrt(sum(norm_cnoise));   %A esta altura ya tengo la norma de cada c = [c0 c1 c2 c3] para cada simbolo repetido.
-%         norm_cnoise = repmat(norm_cnoise,4,1);
-%         norm_cnoise = reshape(norm_cnoise,1,[]);    %A esta altura tengo la norma repetida.
-        c_noise = reshape(noise_mat,1,[]);
+        WGNi = sqrt(N0_veces/2)*randn(1,n*Ns_xloop + ceros); %RBG con varianza N0/2 = 1/2.
+        WGNq = sqrt(N0_veces/2)*randn(1,n*Ns_xloop + ceros); % En modelo son ind entonces genero dos veces.
+        c_noise = (WGNi + 1i*WGNq);
+        
     end
     
     for iteracion=1:loop    
@@ -113,15 +113,13 @@ for EsN0db=0:paso:limite
             h = CanalFlat(n*T,ts);
             h_mat = reshape(h,n,[]);
         else
-            h_mat = zeros(n,floor(T/ts)+1);
-            for i=1:n
-                h_mat(i,:) = CanalFlat(T,ts);
-            end
-            h = reshape(h_mat,1,[]);
+%             h_mat = zeros(n,floor(T/ts)+1);
+            h = CanalFlat(n*T + ceros*ts,ts);
+%             h_mat(i,:) = CanalFlat(T,ts);
+            h_mat = reshape(deInterleaver(h,samps_toDecorr),n,[]);
+            norm_hmat = abs(h_mat).^2;
+            norm_hmat = sqrt(sum(norm_hmat));   %A esta altura ya tengo la norma de cada c = [c0 c1 c2 c3] para cada simbolo repetido.
         end
-        norm_hmat = abs(h_mat).^2;
-        norm_hmat = sqrt(sum(norm_hmat));
-        
 %         h = 0*h + 1;
         
         y_n = ak.*h + c_noise;
@@ -138,6 +136,9 @@ for EsN0db=0:paso:limite
 %     por lo que deja de estar presente la secuencia de ganancias de canal.
 %         h_mat = reshape(h,n,[]);  %Si no estoy generando 4 canales indps.
         if (REP_CODE_FLAG == 1)
+            if (INT_CODE_FLAG ==1)
+                y_n = deInterleaver(y_n,samps_toDecorr);
+            end
             y_mrl = reshape(y_n,n,[]).*conj(h_mat);
             y_mrl = sum(y_mrl)./norm_hmat;
             Simbolos_r_1=ReceptorOptimo(real(y_mrl),imag(y_mrl),A*norm_hmat,M,Asignacion_coords);
@@ -155,7 +156,7 @@ for EsN0db=0:paso:limite
 %         end
         
         bits_r_1=ConvaBits(Simbolos_r_1,Asignacion_coords,M);
-        p(iteracion)=sum(bits_r_1~=bits_t)/Nb_xloop; 
+        p(iteracion)=sum(bits_r_1(1:(end-ceros))~=bits_t)/Nb_xloop; 
 %         p(iteracion)=sum(Simbolos_r_1 ~= ak_t)/Ns_xloop;
     end
     Peb(jj) = mean(p);

@@ -15,4 +15,5 @@ function y = deInterleaver(x,n)
     end
     Block = reshape(x,[n length(x)/n]);
     y = reshape(Block.',1,[]);  %Se traspone aca para dejar bien formateada la matriz Block.
+%     y = y(1:(end-ceros));
 end

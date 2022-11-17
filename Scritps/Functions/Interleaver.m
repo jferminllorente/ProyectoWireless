@@ -13,6 +13,7 @@
 %==========================================================================
 function [y,ceros] = Interleaver(x,n)
     dim = size(x);
+    ceros = 0;
     if(dim(1)>1)    % Se revisa que ingrese vector fila.
         x = x.';
     end
@@ -22,5 +23,4 @@ function [y,ceros] = Interleaver(x,n)
     end
     Block = reshape(x,[length(x)/n n]).';
     y = reshape(Block,1,[]);
-    
 end

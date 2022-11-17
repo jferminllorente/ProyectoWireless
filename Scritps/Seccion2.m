@@ -51,18 +51,18 @@ if (REP_CODE_FLAG == 1)
     n = 4;
 %     T = n*T;
 end
-samps_toDecorr = 0*20*samps_inTc + 4;
+samps_toDecorr = 20*samps_inTc + 4;
 samps_toDecorr = samps_toDecorr - mod(samps_toDecorr,n);
 
 Ns_xloop = Rs;
-Nb_xloop=Ns_xloop*N;
+Nb_xloop = Ns_xloop*N;
 loop = ceil(NumB/Nb_xloop);
 NumS = loop*Ns_xloop;
 NumB = loop*Nb_xloop;
 
-paso=2;     limite=40; %Parametros para la relevación de la curva.
-EsN0_dB=0:paso:limite;
-Peb=0.*EsN0_dB;
+paso = 2;     limite=40; %Parametros para la relevación de la curva.
+EsN0_dB = 0:paso:limite;
+Peb = 0.*EsN0_dB;
 
 Es = 1;
 A = SymbEnergy2Amp(M,Es);

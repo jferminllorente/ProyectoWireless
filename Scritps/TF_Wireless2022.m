@@ -28,19 +28,25 @@ T_c = 1/(4*D_s);    %Tiempo de coherencia.
 
 % Gráfica de la ganancia de canal
 figure;
-plot((0:N-1)*ts, abs(h))
+plot((0:N-1)*ts, abs(h));
 grid on, grid minor;
-title('Ganancia del canal')
-ylabel('Valor absoluto (veces)')
-xlabel('Tiempo (s)')
-
+% title('Ganancia del canal')
+ylabel('Módulo [veces]')
+xlabel('Tiempo [s]')
+figure; 
+plot((0:N-1)*ts, angle(h)*180/pi);
+grid on, grid minor;
+% title('Ganancia del canal')
+ylabel('Fase [ ^o]')
+xlabel('Tiempo [s]')
 % Gráfica del espectro Doppler (puede tardar un rato...)
 [DOP,ff]=pwelch(h,[],[],2*fr,fs);
 S_a_neg = (ff>-fDm & ff<fDm).*1./(pi*fDm*sqrt(1-(ff/fDm).^2));
 % S_a = (ff<fDm)./sqrt(1-(ff/fDm).^2);
 figure;
 plot(ff,DOP,'k'),grid on, grid minor,hold on;
-title('Espectro de la ganancia de canal'),ylabel('Densidad Espectral de potencia [W/Hz]'),xlabel('Frecuencia(Hz)');
+% title('Espectro de la ganancia de canal');
+ylabel('DEP [1/Hz]'),xlabel('Frecuencia [Hz]');
 ylim([-0.1*max(DOP) max(DOP)*1.1]);
 plot(ff,S_a_neg,'--r');
 legend('Realización','Teórico');
@@ -97,7 +103,12 @@ legend('Realización','Teórico');
 AC_empirica = AC_empirica*ts;
 figure;
 plot(deltat*ts,abs(AC_empirica)),grid on,grid minor;
+ylabel('R_{hh}(\Delta t)'),xlabel('\Delta t [s]');
 
+figure;
+plot(deltat*ts,abs(AC_empirica)),grid on,grid minor;
+ylabel('R_{hh}(\Delta t)'),xlabel('\Delta t [s]');
+xlim([-0.1 0.1]);
 % El Tc da 0.00812*2 = 0.0162, si tomamos el Tc = 1/Bc = 0.01 y es aprox
 % igual. Es arbitrario elegri el dividido 4 o no, en Goldsmith no tiene
 % div 4.

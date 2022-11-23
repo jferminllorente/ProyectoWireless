@@ -1,9 +1,9 @@
 %==========================================================================
 %                          Block Interleaver
 %                                 JFL
-%   Se considera diversidad n ya que es como tener n 
-%   canales en tiempo, lo que logra que la pendiente de la curva de 
-%   Peb vs. SNR caiga con SNR^n
+%   Se elige profundidad n de manera tal que se obtenga diversidad 4 ya que
+%   es como tener 4 canales en tiempo, lo que logra que la pendiente de la 
+%   curva de Peb vs. SNR caiga con SNR^4.
 %==========================================================================
 %           y = Interleaver(x,n)
 %   x   --> Secuencia de datos a entrelazar.

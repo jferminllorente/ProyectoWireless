@@ -31,3 +31,9 @@ Simulación Wireless por canal con desvanecimiento Rayleigh.
 Esquema de modulación: 16QAM + código de repetición de 4 veces + entrelazado de profundidad 4.
 5.04e+07 bits simulados.
 Profundidad del interleaver = 4.
+==========================================================================
+peb_16QAM_INT_4.eps
+Simulación Wireless por canal con desvanecimiento Rayleigh.
+Esquema de modulación: 16QAM + código de repetición de 4 veces + entrelazado de profundidad 4.
+5.04e+07 bits simulados.
+Profundidad del interleaver = Tc/ts.

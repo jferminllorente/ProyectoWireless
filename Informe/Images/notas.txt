@@ -1,0 +1,33 @@
+==========================================================================
+peb_BPSK.eps:
+Simulación Wireless por canal con desvanecimiento Rayleigh.
+Esquema de modulación: BPSK.
+5e+07 bits simulados.
+==========================================================================
+peb_QPSK.eps
+Simulación Wireless por canal con desvanecimiento Rayleigh.
+Esquema de modulación: QPSK.
+5e+07 bits simulados.
+==========================================================================
+peb_16QAM_REP.eps
+Simulación Wireless por canal con desvanecimiento Rayleigh.
+Esquema de modulación: 16QAM + código de repetición de 4 veces.
+5.04e+07 bits simulados.
+==========================================================================
+peb_16QAM_INT_1.eps
+Simulación Wireless por canal con desvanecimiento Rayleigh.
+Esquema de modulación: 16QAM + código de repetición de 4 veces + entrelazado de profundidad 4.
+5.04e+07 bits simulados.
+Profundidad del interleaver = 20*Tc*(samples in Tc).
+==========================================================================
+peb_16QAM_INT_2.eps
+Simulación Wireless por canal con desvanecimiento Rayleigh.
+Esquema de modulación: 16QAM + código de repetición de 4 veces + entrelazado de profundidad 4.
+5.04e+07 bits simulados.
+Profundidad del interleaver = 4*Tc*(samples in Tc).
+==========================================================================
+peb_16QAM_INT_3.eps
+Simulación Wireless por canal con desvanecimiento Rayleigh.
+Esquema de modulación: 16QAM + código de repetición de 4 veces + entrelazado de profundidad 4.
+5.04e+07 bits simulados.
+Profundidad del interleaver = 4.

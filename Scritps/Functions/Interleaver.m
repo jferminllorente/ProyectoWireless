@@ -10,6 +10,7 @@
 %   n   --> Profundidad del interleaver. mmm
 %
 %   y   --> Secuencia entrelazada (en formato fila).
+%  ceros--> La cantidad de ceros con los que completé.
 %==========================================================================
 function [y,ceros] = Interleaver(x,n)
     dim = size(x);

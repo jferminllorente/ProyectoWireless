@@ -7,6 +7,7 @@
 %   A   ---> Valor de la amplitud A en la constelación.
 %
 %  [Asignacion_bits , Asignacion_coords]=AsignacionBITSyCOORD(M,A);
+%==========================================================================
 function [Asignacion_bits , Asignacion_coords]=AsignacionBITSyCOORD(M,A)
 switch M
     case 2

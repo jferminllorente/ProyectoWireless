@@ -2,9 +2,10 @@
 %                     End to End Wireless Communication
 %                                 JFL
 %==========================================================================
-%           y = EEwirelessComm(x,c,SCHEME)
+%      [bits_r,Bindx_out] = EtEwirelessComm(bits_t,h,Bindx,SCHEME,EsN0dB)
 %   bits_t   --> Secuencia de bits a enviar.
 %   h        --> Secuencia de amplitudes del canal.
+%   Bindx    --> Indice de bit de entrada.
 %   SCHEME   --> Esquema de modulación + codificación.
 %   - BPSK4 : BPSK con código de repetición 4. (1)
 %   - QPSK4 : QPSK con código de repetición 4. (2)    
@@ -12,7 +13,9 @@
 %   - QPSK  : QPSK sin codigo de repetición.   (4)
 %   - QAM16 : 16QAM sin código de repetición.  (5)
 %   EsN0dB   --> SNR en dB de los simbolos transmitidos.
-%   Peb        --> Secuencia entrelazada (en formato fila).
+%   
+%   bits_r   --> Secuencia de bits recibidos.
+%   Bindx_out--> Indice de bit de salida.
 %==========================================================================
 function [bits_r,Bindx_out] = EtEwirelessComm(bits_t,h,Bindx,SCHEME,EsN0dB)
 Es = 1;
@@ -136,7 +139,6 @@ switch SCHEME
         Bindx_out = Bindx + length(bits_actuales);
         [aki,akq] = generarSimbolos(bits_actuales,A,M);
         ak = aki + 1i*akq;
-%         ak = repCod(ak,repN);
         if length(ak) ~= length(h)
             h = h(1:length(ak));    %Matcheo largos si NumS/N/rep no fuese un entero...
         end
@@ -161,7 +163,6 @@ switch SCHEME
         Bindx_out = Bindx + length(bits_actuales);
         [aki,akq] = generarSimbolos(bits_actuales,A,M);
         ak = aki + 1i*akq;
-%         ak = repCod(ak,repN);
         if length(ak) ~= length(h)
             h = h(1:length(ak));    %Matcheo largos si NumS/N/rep no fuese un entero...
         end

@@ -11,6 +11,7 @@
 %   M   ---> Cantidad de simbolos del sistema de comunicaciones.
 %
 %   [aki,akq]=generarSimbolos(b,A,M)
+%==========================================================================
 function [aki,akq]=generarSimbolos(b,A,M)
 N=log2(M);
 NumS=length(b)/N;

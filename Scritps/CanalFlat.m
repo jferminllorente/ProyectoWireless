@@ -28,35 +28,3 @@ function h = CanalFlat(T,ts)
     hj=sqrt(N)*ifft(HJN);   % Ganancia del canal compleja CON CORRELACIÓN JAKES
     h=hj./std(hj);          % Normalizamos para tener ganancia media 1
 end
-
-%% =======================================================================
-% Gráfica de la ganancia de canal
-% =======================================================================
-% figure;
-% plot((0:N-1)*ts, abs(h))
-% grid on, grid minor;
-% title('Ganancia del canal')
-% ylabel('Valor absoluto (veces)')
-% xlabel('Tiempo (s)')
-
-%% ======================================================================
-% Gráfica del espectro Doppler (puede tardar un rato...)
-% =======================================================================
-
-% [DOP,ff]=pwelch(h,[],[],2*fr,fs);
-% S_a_neg = (ff>-fDm & ff<fDm).*1./(pi*fDm*sqrt(1-(ff/fDm).^2));
-% % S_a = (ff<fDm)./sqrt(1-(ff/fDm).^2);
-% figure;
-% plot(ff,DOP,'k'),grid on, grid minor,hold on;
-% title('Espectro de la ganancia de canal'),ylabel('Densidad Espectral de potencia [W/Hz]'),xlabel('Frecuencia(Hz)');
-% ylim([-0.1*max(DOP) max(DOP)*1.1]);
-% plot(ff,S_a_neg,'--r');
-% legend('Realización','Teórico');
-
-%% Prueba escala logarítmica
-% figure;
-% plot(ff,10*log10(DOP),'k'),grid on, grid minor,hold on;
-% title('Espectro de la ganancia de canal (en escala logarítmica)'),ylabel('Densidad Espectral de potencia [dBw/Hz]'),xlabel('Frecuencia(Hz)');
-% % ylim([-0.1*max(DOP) max(DOP)*1.1]);
-% plot(ff,10*log10(S_a_neg),'--r');
-% legend('Realización','Teórico');

@@ -14,6 +14,7 @@
 %   AsignacionCoords ---> Coordenadas de los M simbolos.
 %
 %   simb=ReceptorOptimo(ak_r_i,ak_r_q,A,M,AsignacionCoords)
+%==========================================================================
 function simb=ReceptorOptimo(ak_r_i,ak_r_q,A,M,AsignacionCoords)
     if(imag(ak_r_q)~=0)
         ak_r_q = imag(ak_r_q);
